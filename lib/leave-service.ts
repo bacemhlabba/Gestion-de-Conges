@@ -1,328 +1,248 @@
-import { getSupabaseBrowserClient } from "./supabase"
-import type { LeaveBalance, LeaveBalanceUpdate, LeaveRequest, Employee } from "./types"
+import type { Employee, LeaveBalance, LeaveBalanceUpdate, LeaveRequest } from "./types"
 
-// Fonction utilitaire pour calculer le nombre de jours ouvrables
-export function calculateWorkingDays(startDate: Date, endDate: Date): number {
-  let days = 0
-  const currentDate = new Date(startDate)
+// Données fictives pour simuler une base de données
+const mockEmployees: Employee[] = [
+  {
+    id: "emp123",
+    name: "Jean Dupont",
+    email: "employee@example.com",
+    department: "Informatique",
+    leaveBalance: {
+      annualTotal: 25,
+      annualUsed: 10,
+      sickTotal: 15,
+      sickUsed: 3,
+    },
+  },
+  {
+    id: "emp456",
+    name: "Marie Martin",
+    email: "marie@example.com",
+    department: "Marketing",
+    leaveBalance: {
+      annualTotal: 25,
+      annualUsed: 15,
+      sickTotal: 15,
+      sickUsed: 0,
+    },
+  },
+  {
+    id: "emp789",
+    name: "Pierre Dubois",
+    email: "pierre@example.com",
+    department: "Finance",
+    leaveBalance: {
+      annualTotal: 25,
+      annualUsed: 5,
+      sickTotal: 15,
+      sickUsed: 7,
+    },
+  },
+  {
+    id: "emp101",
+    name: "Sophie Leroy",
+    email: "sophie@example.com",
+    department: "Ressources Humaines",
+    leaveBalance: {
+      annualTotal: 25,
+      annualUsed: 20,
+      sickTotal: 15,
+      sickUsed: 2,
+    },
+  },
+]
 
-  while (currentDate <= endDate) {
-    // 0 = Dimanche, 6 = Samedi
-    const dayOfWeek = currentDate.getDay()
-    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-      days++
-    }
-    currentDate.setDate(currentDate.getDate() + 1)
-  }
+const mockLeaveRequests: LeaveRequest[] = [
+  {
+    id: "req123",
+    userId: "emp123",
+    userName: "Jean Dupont",
+    type: "annual",
+    startDate: "2023-05-10",
+    endDate: "2023-05-15",
+    status: "approved",
+    createdAt: "2023-05-01",
+    updatedAt: "2023-05-02",
+  },
+  {
+    id: "req456",
+    userId: "emp456",
+    userName: "Marie Martin",
+    type: "sick",
+    startDate: "2023-06-22",
+    endDate: "2023-06-24",
+    status: "approved",
+    createdAt: "2023-06-21",
+    updatedAt: "2023-06-21",
+  },
+  {
+    id: "req789",
+    userId: "emp789",
+    userName: "Pierre Dubois",
+    type: "exceptional",
+    startDate: "2023-07-05",
+    endDate: "2023-07-05",
+    reason: "Rendez-vous administratif important",
+    status: "rejected",
+    rejectionReason: "Présence requise pour une réunion critique",
+    createdAt: "2023-07-01",
+    updatedAt: "2023-07-02",
+  },
+  {
+    id: "req101",
+    userId: "emp101",
+    userName: "Sophie Leroy",
+    type: "annual",
+    startDate: "2023-08-15",
+    endDate: "2023-08-30",
+    status: "pending",
+    createdAt: "2023-07-15",
+    updatedAt: "2023-07-15",
+  },
+]
 
-  return days
-}
+// Fonctions pour simuler les opérations de base de données
 
 // Récupérer les demandes de congés d'un employé
-export async function getLeaveRequests(userId: string): Promise<LeaveRequest[]> {
-  const supabase = getSupabaseBrowserClient()
-
-  const { data, error } = await supabase
-    .from("leave_requests")
-    .select("*")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false })
-
-  if (error) {
-    console.error("Erreur lors de la récupération des demandes:", error)
-    throw error
-  }
-
-  return data || []
+export const getLeaveRequests = async (userId: string): Promise<LeaveRequest[]> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const requests = mockLeaveRequests.filter((req) => req.userId === userId)
+      resolve(requests)
+    }, 500)
+  })
 }
 
 // Récupérer toutes les demandes de congés
-export async function getAllLeaveRequests(): Promise<LeaveRequest[]> {
-  const supabase = getSupabaseBrowserClient()
-
-  const { data, error } = await supabase
-    .from("leave_requests")
-    .select(`
-      *,
-      profiles (name)
-    `)
-    .order("created_at", { ascending: false })
-
-  if (error) {
-    console.error("Erreur lors de la récupération des demandes:", error)
-    throw error
-  }
-
-  // Transformer les données pour correspondre à notre interface
-  return (data || []).map((item) => ({
-    ...item,
-    user_name: item.profiles?.name,
-  }))
+export const getAllLeaveRequests = async (): Promise<LeaveRequest[]> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve([...mockLeaveRequests])
+    }, 500)
+  })
 }
 
 // Récupérer les demandes de congés en attente
-export async function getPendingLeaveRequests(): Promise<LeaveRequest[]> {
-  const supabase = getSupabaseBrowserClient()
-
-  const { data, error } = await supabase
-    .from("leave_requests")
-    .select(`
-      *,
-      profiles (name)
-    `)
-    .eq("status", "pending")
-    .order("created_at", { ascending: false })
-
-  if (error) {
-    console.error("Erreur lors de la récupération des demandes:", error)
-    throw error
-  }
-
-  // Transformer les données pour correspondre à notre interface
-  return (data || []).map((item) => ({
-    ...item,
-    user_name: item.profiles?.name,
-  }))
+export const getPendingLeaveRequests = async (): Promise<LeaveRequest[]> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const pendingRequests = mockLeaveRequests.filter((req) => req.status === "pending")
+      resolve(pendingRequests)
+    }, 500)
+  })
 }
 
 // Créer une nouvelle demande de congé
-export async function createLeaveRequest(request: Partial<LeaveRequest>): Promise<LeaveRequest> {
-  const supabase = getSupabaseBrowserClient()
+export const createLeaveRequest = async (request: Partial<LeaveRequest>): Promise<LeaveRequest> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const employee = mockEmployees.find((emp) => emp.id === request.userId)
+      const newRequest: LeaveRequest = {
+        id: `req${Date.now()}`,
+        userId: request.userId || "",
+        userName: employee?.name,
+        type: request.type || "annual",
+        startDate: request.startDate || new Date(),
+        endDate: request.endDate || new Date(),
+        reason: request.reason,
+        status: "pending",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }
 
-  const { data, error } = await supabase
-    .from("leave_requests")
-    .insert({
-      user_id: request.user_id,
-      type: request.type,
-      start_date: request.start_date,
-      end_date: request.end_date,
-      reason: request.reason,
-      status: "pending",
-    })
-    .select()
-    .single()
-
-  if (error) {
-    console.error("Erreur lors de la création de la demande:", error)
-    throw error
-  }
-
-  return data
+      mockLeaveRequests.push(newRequest)
+      resolve(newRequest)
+    }, 500)
+  })
 }
 
 // Mettre à jour le statut d'une demande de congé
-export async function updateLeaveRequestStatus(
+export const updateLeaveRequestStatus = async (
   requestId: string,
   status: string,
   rejectionReason?: string,
-): Promise<LeaveRequest> {
-  const supabase = getSupabaseBrowserClient()
+): Promise<LeaveRequest> => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const index = mockLeaveRequests.findIndex((req) => req.id === requestId)
 
-  // Récupérer la demande actuelle
-  const { data: currentRequest, error: fetchError } = await supabase
-    .from("leave_requests")
-    .select("*")
-    .eq("id", requestId)
-    .single()
+      if (index === -1) {
+        reject(new Error("Demande non trouvée"))
+        return
+      }
 
-  if (fetchError) {
-    console.error("Erreur lors de la récupération de la demande:", fetchError)
-    throw fetchError
-  }
+      const updatedRequest = {
+        ...mockLeaveRequests[index],
+        status,
+        rejectionReason: status === "rejected" ? rejectionReason : undefined,
+        updatedAt: new Date().toISOString(),
+      }
 
-  // Mettre à jour la demande
-  const { data, error } = await supabase
-    .from("leave_requests")
-    .update({
-      status,
-      rejection_reason: status === "rejected" ? rejectionReason : null,
-    })
-    .eq("id", requestId)
-    .select()
-    .single()
+      // Mettre à jour les soldes de congés si la demande est approuvée
+      if (status === "approved") {
+        const request = mockLeaveRequests[index]
+        const employeeIndex = mockEmployees.findIndex((emp) => emp.id === request.userId)
 
-  if (error) {
-    console.error("Erreur lors de la mise à jour de la demande:", error)
-    throw error
-  }
+        if (employeeIndex !== -1) {
+          const startDate = new Date(request.startDate)
+          const endDate = new Date(request.endDate)
+          const days = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
 
-  // Si la demande est approuvée, mettre à jour les soldes de congés
-  if (status === "approved") {
-    const days = calculateWorkingDays(new Date(currentRequest.start_date), new Date(currentRequest.end_date))
+          if (request.type === "annual") {
+            mockEmployees[employeeIndex].leaveBalance.annualUsed += days
+          } else if (request.type === "sick") {
+            mockEmployees[employeeIndex].leaveBalance.sickUsed += days
+          }
+        }
+      }
 
-    const { data: balance, error: balanceError } = await supabase
-      .from("leave_balances")
-      .select("*")
-      .eq("user_id", currentRequest.user_id)
-      .single()
-
-    if (balanceError) {
-      console.error("Erreur lors de la récupération du solde:", balanceError)
-      throw balanceError
-    }
-
-    if (currentRequest.type === "annual") {
-      await supabase
-        .from("leave_balances")
-        .update({ annual_used: balance.annual_used + days })
-        .eq("user_id", currentRequest.user_id)
-    } else if (currentRequest.type === "sick") {
-      await supabase
-        .from("leave_balances")
-        .update({ sick_used: balance.sick_used + days })
-        .eq("user_id", currentRequest.user_id)
-    }
-  }
-
-  return data
+      mockLeaveRequests[index] = updatedRequest
+      resolve(updatedRequest)
+    }, 500)
+  })
 }
 
 // Récupérer le solde de congés d'un employé
-export async function getLeaveBalance(userId: string): Promise<LeaveBalance> {
-  const supabase = getSupabaseBrowserClient()
-
-  const { data, error } = await supabase.from("leave_balances").select("*").eq("user_id", userId).single()
-
-  if (error) {
-    if (error.code === "PGRST116") {
-      // Code pour "No rows found"
-      // Créer un solde par défaut si aucun n'existe
-      const { data: newBalance, error: insertError } = await supabase
-        .from("leave_balances")
-        .insert({
-          user_id: userId,
-          annual_total: 25,
-          annual_used: 0,
-          sick_total: 15,
-          sick_used: 0,
-        })
-        .select()
-        .single()
-
-      if (insertError) {
-        console.error("Erreur lors de la création du solde:", insertError)
-        throw insertError
-      }
-
-      return newBalance
-    }
-
-    console.error("Erreur lors de la récupération du solde:", error)
-    throw error
-  }
-
-  return data
+export const getLeaveBalance = async (userId: string): Promise<LeaveBalance | null> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const employee = mockEmployees.find((emp) => emp.id === userId)
+      resolve(employee ? employee.leaveBalance : null)
+    }, 500)
+  })
 }
 
 // Récupérer la liste des employés
-export async function getEmployees(): Promise<Employee[]> {
-  const supabase = getSupabaseBrowserClient()
-
-  const { data: profiles, error: profilesError } = await supabase.from("profiles").select("*").eq("role", "employee")
-
-  if (profilesError) {
-    console.error("Erreur lors de la récupération des profils:", profilesError)
-    throw profilesError
-  }
-
-  const employees: Employee[] = []
-
-  for (const profile of profiles) {
-    const { data: balance, error: balanceError } = await supabase
-      .from("leave_balances")
-      .select("*")
-      .eq("user_id", profile.id)
-      .single()
-
-    if (balanceError && balanceError.code !== "PGRST116") {
-      console.error("Erreur lors de la récupération du solde:", balanceError)
-      continue
-    }
-
-    employees.push({
-      ...profile,
-      leave_balance: balance || {
-        annual_total: 25,
-        annual_used: 0,
-        sick_total: 15,
-        sick_used: 0,
-      },
-    })
-  }
-
-  return employees
+export const getEmployees = async (): Promise<Employee[]> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve([...mockEmployees])
+    }, 500)
+  })
 }
 
 // Mettre à jour le solde de congés d'un employé
-export async function updateEmployeeLeaveBalance(employeeId: string, update: LeaveBalanceUpdate): Promise<Employee> {
-  const supabase = getSupabaseBrowserClient()
+export const updateEmployeeLeaveBalance = async (employeeId: string, update: LeaveBalanceUpdate): Promise<Employee> => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const index = mockEmployees.findIndex((emp) => emp.id === employeeId)
 
-  // Vérifier si l'employé existe
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", employeeId)
-    .single()
+      if (index === -1) {
+        reject(new Error("Employé non trouvé"))
+        return
+      }
 
-  if (profileError) {
-    console.error("Erreur lors de la récupération du profil:", profileError)
-    throw profileError
-  }
+      const updatedEmployee = {
+        ...mockEmployees[index],
+        leaveBalance: {
+          ...mockEmployees[index].leaveBalance,
+          annualTotal: update.annualTotal,
+          sickTotal: update.sickTotal,
+        },
+      }
 
-  // Vérifier si un solde existe déjà
-  const { data: existingBalance, error: balanceError } = await supabase
-    .from("leave_balances")
-    .select("*")
-    .eq("user_id", employeeId)
-    .single()
-
-  let balance
-
-  if (balanceError && balanceError.code === "PGRST116") {
-    // Créer un nouveau solde
-    const { data: newBalance, error: insertError } = await supabase
-      .from("leave_balances")
-      .insert({
-        user_id: employeeId,
-        annual_total: update.annual_total,
-        annual_used: 0,
-        sick_total: update.sick_total,
-        sick_used: 0,
-      })
-      .select()
-      .single()
-
-    if (insertError) {
-      console.error("Erreur lors de la création du solde:", insertError)
-      throw insertError
-    }
-
-    balance = newBalance
-  } else if (balanceError) {
-    console.error("Erreur lors de la récupération du solde:", balanceError)
-    throw balanceError
-  } else {
-    // Mettre à jour le solde existant
-    const { data: updatedBalance, error: updateError } = await supabase
-      .from("leave_balances")
-      .update({
-        annual_total: update.annual_total,
-        sick_total: update.sick_total,
-      })
-      .eq("user_id", employeeId)
-      .select()
-      .single()
-
-    if (updateError) {
-      console.error("Erreur lors de la mise à jour du solde:", updateError)
-      throw updateError
-    }
-
-    balance = updatedBalance
-  }
-
-  return {
-    ...profile,
-    leave_balance: balance,
-  }
+      mockEmployees[index] = updatedEmployee
+      resolve(updatedEmployee)
+    }, 500)
+  })
 }

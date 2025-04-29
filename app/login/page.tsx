@@ -3,57 +3,72 @@
 import type React from "react"
 
 import { useState } from "react"
-import { useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { AlertCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { useAuth } from "@/contexts/auth-context"
 
 export default function LoginPage() {
+  const router = useRouter()
   const searchParams = useSearchParams()
   const role = searchParams.get("role") || "employee"
   const { toast } = useToast()
-  const { login, loading } = useAuth()
   const [formData, setFormData] = useState({
-    email: role === "hr" ? "drh@example.com" : "employee@example.com",
-    password: "password",
+    email: "",
+    password: "",
   })
-  const [error, setError] = useState<string | null>(null)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     })
-    // Réinitialiser l'erreur lorsque l'utilisateur modifie les champs
-    setError(null)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    setError(null)
 
-    try {
-      await login(formData.email, formData.password)
-    } catch (error: any) {
-      console.error("Erreur de connexion:", error)
-
-      // Afficher un message d'erreur plus spécifique
-      if (error.message?.includes("Invalid login credentials")) {
-        setError("Identifiants invalides. Assurez-vous d'avoir initialisé les données en visitant /seed.")
+    // Simulation d'authentification
+    if (role === "employee") {
+      if (formData.email === "employee@example.com" && formData.password === "password") {
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            id: "emp123",
+            name: "Jean Dupont",
+            role: "employee",
+            email: formData.email,
+          }),
+        )
+        router.push("/employee/dashboard")
       } else {
-        setError(error.message || "Une erreur est survenue lors de la connexion")
+        toast({
+          title: "Erreur d'authentification",
+          description: "Email ou mot de passe incorrect",
+          variant: "destructive",
+        })
       }
-
-      toast({
-        title: "Erreur d'authentification",
-        description: "Impossible de se connecter avec ces identifiants",
-        variant: "destructive",
-      })
+    } else {
+      if (formData.email === "drh@example.com" && formData.password === "password") {
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            id: "hr123",
+            name: "Marie Martin",
+            role: "hr",
+            email: formData.email,
+          }),
+        )
+        router.push("/hr/dashboard")
+      } else {
+        toast({
+          title: "Erreur d'authentification",
+          description: "Email ou mot de passe incorrect",
+          variant: "destructive",
+        })
+      }
     }
   }
 
@@ -66,24 +81,16 @@ export default function LoginPage() {
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Erreur</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 name="email"
                 type="email"
+                placeholder={role === "hr" ? "drh@example.com" : "employee@example.com"}
                 required
                 value={formData.email}
                 onChange={handleChange}
-                disabled={loading}
               />
             </div>
             <div className="space-y-2">
@@ -92,26 +99,16 @@ export default function LoginPage() {
                 id="password"
                 name="password"
                 type="password"
+                placeholder="••••••••"
                 required
                 value={formData.password}
                 onChange={handleChange}
-                disabled={loading}
               />
-            </div>
-
-            <div className="text-sm text-muted-foreground">
-              <p>
-                Pour initialiser les utilisateurs, visitez{" "}
-                <a href="/seed" className="text-primary underline">
-                  la page de seed
-                </a>
-                .
-              </p>
             </div>
           </CardContent>
           <CardFooter>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Connexion en cours..." : "Se connecter"}
+            <Button type="submit" className="w-full">
+              Se connecter
             </Button>
           </CardFooter>
         </form>

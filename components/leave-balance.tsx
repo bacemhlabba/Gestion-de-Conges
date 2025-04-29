@@ -5,14 +5,12 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { getLeaveBalance } from "@/lib/leave-service"
 import type { LeaveBalance as LeaveBalanceType } from "@/lib/types"
-import { useToast } from "@/hooks/use-toast"
 
 interface LeaveBalanceProps {
   userId: string
 }
 
 export function LeaveBalance({ userId }: LeaveBalanceProps) {
-  const { toast } = useToast()
   const [balance, setBalance] = useState<LeaveBalanceType | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -23,20 +21,13 @@ export function LeaveBalance({ userId }: LeaveBalanceProps) {
         setBalance(data)
       } catch (error) {
         console.error("Erreur lors de la récupération des soldes:", error)
-        toast({
-          title: "Erreur",
-          description: "Impossible de récupérer les soldes de congés",
-          variant: "destructive",
-        })
       } finally {
         setLoading(false)
       }
     }
 
-    if (userId) {
-      fetchBalance()
-    }
-  }, [userId, toast])
+    fetchBalance()
+  }, [userId])
 
   if (loading) {
     return <div className="flex justify-center p-4">Chargement...</div>
@@ -57,12 +48,12 @@ export function LeaveBalance({ userId }: LeaveBalanceProps) {
           <h3 className="text-lg font-medium mb-4">Congés annuels</h3>
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span>Utilisés: {balance.annual_used} jours</span>
-              <span>Disponibles: {balance.annual_total - balance.annual_used} jours</span>
+              <span>Utilisés: {balance.annualUsed} jours</span>
+              <span>Disponibles: {balance.annualTotal - balance.annualUsed} jours</span>
             </div>
-            <Progress value={calculatePercentage(balance.annual_used, balance.annual_total)} className="h-2" />
+            <Progress value={calculatePercentage(balance.annualUsed, balance.annualTotal)} className="h-2" />
             <p className="text-xs text-muted-foreground text-right">
-              {balance.annual_used} / {balance.annual_total} jours
+              {balance.annualUsed} / {balance.annualTotal} jours
             </p>
           </div>
         </CardContent>
@@ -73,12 +64,12 @@ export function LeaveBalance({ userId }: LeaveBalanceProps) {
           <h3 className="text-lg font-medium mb-4">Congés maladie</h3>
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span>Utilisés: {balance.sick_used} jours</span>
-              <span>Disponibles: {balance.sick_total - balance.sick_used} jours</span>
+              <span>Utilisés: {balance.sickUsed} jours</span>
+              <span>Disponibles: {balance.sickTotal - balance.sickUsed} jours</span>
             </div>
-            <Progress value={calculatePercentage(balance.sick_used, balance.sick_total)} className="h-2" />
+            <Progress value={calculatePercentage(balance.sickUsed, balance.sickTotal)} className="h-2" />
             <p className="text-xs text-muted-foreground text-right">
-              {balance.sick_used} / {balance.sick_total} jours
+              {balance.sickUsed} / {balance.sickTotal} jours
             </p>
           </div>
         </CardContent>

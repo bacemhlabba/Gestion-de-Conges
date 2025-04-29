@@ -1,52 +1,33 @@
-export interface Profile {
+export interface LeaveRequest {
   id: string
-  name: string
-  email?: string
-  role: string
-  department: string
-  created_at?: string
-  updated_at?: string
+  userId: string
+  userName?: string
+  type: string
+  startDate: string | Date
+  endDate: string | Date
+  reason?: string
+  status: string
+  rejectionReason?: string
+  createdAt: string | Date
+  updatedAt: string | Date
 }
 
 export interface LeaveBalance {
-  id?: string
-  user_id?: string
-  annual_total: number
-  annual_used: number
-  sick_total: number
-  sick_used: number
-  updated_at?: string
+  annualTotal: number
+  annualUsed: number
+  sickTotal: number
+  sickUsed: number
 }
 
-export interface LeaveRequest {
+export interface Employee {
   id: string
-  user_id: string
-  user_name?: string
-  type: string
-  start_date: string
-  end_date: string
-  reason?: string
-  status: string
-  rejection_reason?: string
-  created_at: string
-  updated_at: string
+  name: string
+  email: string
+  department: string
+  leaveBalance: LeaveBalance
 }
 
 export interface LeaveBalanceUpdate {
-  annual_total: number
-  sick_total: number
-}
-
-export interface Employee extends Profile {
-  leave_balance: LeaveBalance
-}
-
-export interface AuthUser {
-  id: string
-  email: string
-}
-
-export interface Session {
-  user: AuthUser | null
-  profile: Profile | null
+  annualTotal: number
+  sickTotal: number
 }

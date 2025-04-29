@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -10,41 +10,41 @@ import { AllRequests } from "@/components/all-requests"
 import { EmployeesList } from "@/components/employees-list"
 import { Reports } from "@/components/reports"
 import { useToast } from "@/hooks/use-toast"
-import { useAuth } from "@/contexts/auth-context"
 
 export default function HRDashboard() {
   const router = useRouter()
   const { toast } = useToast()
-  const { session, loading, logout } = useAuth()
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!loading && (!session || !session.profile)) {
+    // Vérifier si l'utilisateur est connecté
+    const userData = localStorage.getItem("user")
+    if (!userData) {
       router.push("/login")
       return
     }
 
-    if (!loading && session?.profile?.role !== "hr") {
+    const parsedUser = JSON.parse(userData)
+    if (parsedUser.role !== "hr") {
       router.push("/login")
+      return
     }
-  }, [session, loading, router])
 
-  const handleLogout = async () => {
-    try {
-      await logout()
-      toast({
-        title: "Déconnexion réussie",
-        description: "Vous avez été déconnecté avec succès",
-      })
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de la déconnexion",
-        variant: "destructive",
-      })
-    }
+    setUser(parsedUser)
+    setLoading(false)
+  }, [router])
+
+  const handleLogout = () => {
+    localStorage.removeItem("user")
+    router.push("/")
+    toast({
+      title: "Déconnexion réussie",
+      description: "Vous avez été déconnecté avec succès",
+    })
   }
 
-  if (loading || !session || !session.profile) {
+  if (loading) {
     return <div className="flex min-h-screen items-center justify-center">Chargement...</div>
   }
 
@@ -54,7 +54,7 @@ export default function HRDashboard() {
         <div className="container mx-auto flex items-center justify-between">
           <h1 className="text-xl font-bold">Gestion de Congés</h1>
           <div className="flex items-center gap-4">
-            <span>Bonjour, {session.profile.name}</span>
+            <span>Bonjour, {user?.name}</span>
             <Button variant="outline" size="sm" onClick={handleLogout}>
               Déconnexion
             </Button>
@@ -76,7 +76,7 @@ export default function HRDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Demandes en attente</CardTitle>
-                <CardDescription>Gérez les dem andes de congés en attente de validation</CardDescription>
+                <CardDescription>Gérez les demandes de congés en attente de validation</CardDescription>
               </CardHeader>
               <CardContent>
                 <PendingRequests />

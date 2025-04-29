@@ -8,14 +8,12 @@ import { fr } from "date-fns/locale"
 import { AlertCircle, Calendar, Clock } from "lucide-react"
 import { getLeaveRequests } from "@/lib/leave-service"
 import type { LeaveRequest } from "@/lib/types"
-import { useToast } from "@/hooks/use-toast"
 
 interface LeaveHistoryProps {
   userId: string
 }
 
 export function LeaveHistory({ userId }: LeaveHistoryProps) {
-  const { toast } = useToast()
   const [requests, setRequests] = useState<LeaveRequest[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -26,20 +24,13 @@ export function LeaveHistory({ userId }: LeaveHistoryProps) {
         setRequests(data)
       } catch (error) {
         console.error("Erreur lors de la récupération des demandes:", error)
-        toast({
-          title: "Erreur",
-          description: "Impossible de récupérer l'historique des demandes",
-          variant: "destructive",
-        })
       } finally {
         setLoading(false)
       }
     }
 
-    if (userId) {
-      fetchRequests()
-    }
-  }, [userId, toast])
+    fetchRequests()
+  }, [userId])
 
   if (loading) {
     return <div className="flex justify-center p-4">Chargement...</div>
@@ -100,13 +91,13 @@ export function LeaveHistory({ userId }: LeaveHistoryProps) {
                 <div className="flex items-center text-sm text-muted-foreground">
                   <Calendar className="mr-2 h-4 w-4" />
                   <span>
-                    Du {format(new Date(request.start_date), "dd MMM yyyy", { locale: fr })} au{" "}
-                    {format(new Date(request.end_date), "dd MMM yyyy", { locale: fr })}
+                    Du {format(new Date(request.startDate), "dd MMM yyyy", { locale: fr })} au{" "}
+                    {format(new Date(request.endDate), "dd MMM yyyy", { locale: fr })}
                   </span>
                 </div>
                 <div className="flex items-center text-sm text-muted-foreground">
                   <Clock className="mr-2 h-4 w-4" />
-                  <span>Soumis le {format(new Date(request.created_at), "dd MMM yyyy", { locale: fr })}</span>
+                  <span>Soumis le {format(new Date(request.createdAt), "dd MMM yyyy", { locale: fr })}</span>
                 </div>
               </div>
 
@@ -117,12 +108,12 @@ export function LeaveHistory({ userId }: LeaveHistoryProps) {
                 </div>
               )}
 
-              {request.rejection_reason && (
+              {request.rejectionReason && (
                 <div className="mt-2 flex items-start gap-2 text-sm text-red-500">
                   <AlertCircle className="h-4 w-4 mt-0.5" />
                   <div>
                     <p className="font-medium">Motif du refus:</p>
-                    <p>{request.rejection_reason}</p>
+                    <p>{request.rejectionReason}</p>
                   </div>
                 </div>
               )}

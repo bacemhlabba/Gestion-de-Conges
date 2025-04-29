@@ -16,9 +16,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import { Calendar, Clock, User } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 import { getPendingLeaveRequests, updateLeaveRequestStatus } from "@/lib/leave-service"
 import type { LeaveRequest } from "@/lib/types"
-import { useToast } from "@/hooks/use-toast"
 
 export function PendingRequests() {
   const { toast } = useToast()
@@ -152,19 +152,19 @@ export function PendingRequests() {
               <div className="grid gap-2 sm:grid-cols-2">
                 <div className="flex items-center text-sm text-muted-foreground">
                   <User className="mr-2 h-4 w-4" />
-                  <span>{request.user_name || "Employé"}</span>
+                  <span>{request.userName || "Employé"}</span>
                 </div>
                 <div className="flex items-center text-sm text-muted-foreground">
                   <Clock className="mr-2 h-4 w-4" />
-                  <span>Soumis le {format(new Date(request.created_at), "dd MMM yyyy", { locale: fr })}</span>
+                  <span>Soumis le {format(new Date(request.createdAt), "dd MMM yyyy", { locale: fr })}</span>
                 </div>
               </div>
 
               <div className="mt-2 flex items-center text-sm text-muted-foreground">
                 <Calendar className="mr-2 h-4 w-4" />
                 <span>
-                  Du {format(new Date(request.start_date), "dd MMM yyyy", { locale: fr })} au{" "}
-                  {format(new Date(request.end_date), "dd MMM yyyy", { locale: fr })}
+                  Du {format(new Date(request.startDate), "dd MMM yyyy", { locale: fr })} au{" "}
+                  {format(new Date(request.endDate), "dd MMM yyyy", { locale: fr })}
                 </span>
               </div>
 

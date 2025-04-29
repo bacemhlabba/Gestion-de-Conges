@@ -62,11 +62,12 @@ export function LeaveRequestForm({ userId }: LeaveRequestFormProps) {
 
     try {
       await createLeaveRequest({
-        user_id: userId,
-        start_date: startDate.toISOString(),
-        end_date: endDate.toISOString(),
+        userId,
+        startDate,
+        endDate,
         type: leaveType,
         reason: leaveType === "exceptional" ? reason : "",
+        status: "pending",
       })
 
       toast({
